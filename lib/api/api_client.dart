@@ -13,7 +13,7 @@ class ApiClient extends GetConnect implements GetxService {
     try {
       Response response = await get(uri,
           headers: {'Authorization': '${AppConstants.API_TOKEN}'});
-      print("===response : ${response.body}");
+      // print("===response : ${response.body}");
       return response;
     } catch (e) {
       return Response(statusCode: 1, statusText: e.toString());
