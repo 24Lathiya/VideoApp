@@ -20,13 +20,13 @@ class _ReelsVideoPlayerState extends State<
   late ChewieController _chewieController;
   // late var height;
   // late var width;
-
+  final observedWidgetKey = GlobalKey();
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
-
-    print("===url ${widget.videoUrl}");
+    print("=====init===== $observedWidgetKey");
+    // print("===url ${widget.videoUrl}");
     _controller = VideoPlayerController.network(widget.videoUrl);
     _controller.addListener(() {
       setState(() {});
@@ -62,8 +62,10 @@ class _ReelsVideoPlayerState extends State<
 
   @override
   void dispose() {
+    print("=====dispose===== $observedWidgetKey");
     _chewieController.dispose();
     _controller.dispose();
+
     super.dispose();
   }
 

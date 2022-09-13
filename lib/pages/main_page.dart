@@ -9,6 +9,7 @@ import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:get/get.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:video_app/controller/video_controller.dart';
 import 'package:video_app/widgets/reels_video_player.dart';
 
@@ -21,6 +22,7 @@ class MainPage extends StatefulWidget {
 
 class _MainPageState extends State<MainPage> {
   var videoUrl;
+  var filePath;
   final ReceivePort _port = ReceivePort();
   @override
   void initState() {
@@ -31,13 +33,15 @@ class _MainPageState extends State<MainPage> {
     IsolateNameServer.registerPortWithName(
         _port.sendPort, 'downloader_send_port');
     _port.listen((dynamic data) {
-      // String id = data[0];
+      // String id = data[0]; //id
       DownloadTaskStatus status = data[1];
       int progress = data[2];
       print("====== $progress");
       EasyLoading.showProgress(progress / 100, status: "$progress %");
       if (status == DownloadTaskStatus.complete && progress == 100) {
         EasyLoading.dismiss();
+        // share
+        Share.shareFiles([filePath], subject: "Share");
       }
       setState(() {});
     });
@@ -69,6 +73,8 @@ class _MainPageState extends State<MainPage> {
     Directory appDocDir = await getApplicationDocumentsDirectory();
     String appDocPath = appDocDir.path;
     String fileName = DateTime.now().millisecondsSinceEpoch.toString() + '.mp4';
+    filePath = "${appDocPath}/$fileName";
+    print("===== $filePath");
     final taskId = await FlutterDownloader.enqueue(
       url: videoUrl,
       headers: {}, // optional: header send with url (auth token etc)
@@ -120,35 +126,12 @@ class _MainPageState extends State<MainPage> {
                   return ReelsVideoPlayer(
                       thumbUrl: '${videoController.videoList[index].image}',
                       videoUrl: videoUrl);
-
-                  /* Stack(
-                    children: [
-                      Container(
-                        decoration: BoxDecoration(
-                          image: DecorationImage(
-                              // image: AssetImage("assets/images/sample.png"),
-                              image: NetworkImage(
-                                  '${videoController.videoList[index].image}'),
-                              fit: BoxFit.cover),
-                        ),
-                      ),
-                    ],
-                  );*/
-                  /*CachedNetworkImage(
-                    imageUrl: '${videoController.videoList[index].image}',
-                    placeholder: (context, url) => const AspectRatio(
-                      aspectRatio: 1.6,
-                      child: BlurHash(hash: 'L5H2EC=PM+yV0g-mq.wG9c010J}I'),
-                    ),
-                    errorWidget: (context, url, error) => Icon(Icons.error),
-                    fit: BoxFit.cover,
-                  );*/
                 })
             : Center(
                 child: CircularProgressIndicator(),
               );
       }),
-      /*floatingActionButton: FloatingActionButton(
+      floatingActionButton: FloatingActionButton(
         mini: true,
         onPressed: () {
           _downloadVideo(videoUrl);
@@ -156,7 +139,7 @@ class _MainPageState extends State<MainPage> {
         child: Icon(
           Icons.download,
         ),
-      ),*/
+      ),
     );
   }
 }
