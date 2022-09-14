@@ -27,9 +27,10 @@ class _MainPageState extends State<MainPage> {
   @override
   void initState() {
     // TODO: implement initState
+    super.initState();
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
     _checkPermission();
-    super.initState();
+
     IsolateNameServer.registerPortWithName(
         _port.sendPort, 'downloader_send_port');
     _port.listen((dynamic data) {
@@ -37,11 +38,13 @@ class _MainPageState extends State<MainPage> {
       DownloadTaskStatus status = data[1];
       int progress = data[2];
       print("====== $progress");
-      EasyLoading.showProgress(progress / 100, status: "$progress %");
+      EasyLoading.showProgress(progress / 100, status: " $progress % ");
       if (status == DownloadTaskStatus.complete && progress == 100) {
         EasyLoading.dismiss();
         // share
-        Share.shareFiles([filePath], subject: "Share");
+        Share.shareFiles([
+          filePath,
+        ], subject: "Share");
       }
       setState(() {});
     });
@@ -51,13 +54,13 @@ class _MainPageState extends State<MainPage> {
 
   @override
   void dispose() {
-    super.dispose();
-
+    print("=====main dispose====");
     IsolateNameServer.removePortNameMapping('downloader_send_port');
     if (EasyLoading.isShow) {
       EasyLoading.dismiss();
     }
     EasyLoading.removeAllCallbacks();
+    super.dispose();
   }
 
   @pragma('vm:entry-point')
@@ -69,7 +72,7 @@ class _MainPageState extends State<MainPage> {
   }
 
   _downloadVideo(String videoUrl) async {
-    EasyLoading.show(status: 'Loading... 0 %');
+    EasyLoading.show(status: 'Loading..');
     Directory appDocDir = await getApplicationDocumentsDirectory();
     String appDocPath = appDocDir.path;
     String fileName = DateTime.now().millisecondsSinceEpoch.toString() + '.mp4';
@@ -109,35 +112,41 @@ class _MainPageState extends State<MainPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: GetBuilder<VideoController>(builder: (videoController) {
-        return videoController.isLoaded
-            ? PageView.builder(
-                scrollDirection: Axis.vertical,
-                onPageChanged: (index) {
-                  if (EasyLoading.isShow) {
-                    EasyLoading.dismiss();
-                  }
-                },
-                itemCount: videoController.videoList.length,
-                itemBuilder: (context, index) {
-                  videoUrl =
-                      '${videoController.videoList[index].videoFiles![1].link}';
-                  return ReelsVideoPlayer(
-                      thumbUrl: '${videoController.videoList[index].image}',
-                      videoUrl: videoUrl);
-                })
-            : Center(
-                child: CircularProgressIndicator(),
-              );
-      }),
-      floatingActionButton: FloatingActionButton(
-        mini: true,
-        onPressed: () {
-          _downloadVideo(videoUrl);
-        },
-        child: Icon(
-          Icons.download,
+    return WillPopScope(
+      onWillPop: () async {
+        dispose();
+        return true;
+      },
+      child: Scaffold(
+        body: GetBuilder<VideoController>(builder: (videoController) {
+          return videoController.isLoaded
+              ? PageView.builder(
+                  scrollDirection: Axis.vertical,
+                  onPageChanged: (index) {
+                    if (EasyLoading.isShow) {
+                      EasyLoading.dismiss();
+                    }
+                  },
+                  itemCount: videoController.videoList.length,
+                  itemBuilder: (context, index) {
+                    videoUrl =
+                        '${videoController.videoList[index].videoFiles![1].link}';
+                    return ReelsVideoPlayer(
+                        thumbUrl: '${videoController.videoList[index].image}',
+                        videoUrl: videoUrl);
+                  })
+              : Center(
+                  child: CircularProgressIndicator(),
+                );
+        }),
+        floatingActionButton: FloatingActionButton(
+          mini: true,
+          onPressed: () {
+            _downloadVideo(videoUrl);
+          },
+          child: Icon(
+            Icons.download,
+          ),
         ),
       ),
     );

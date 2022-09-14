@@ -138,7 +138,7 @@ packages:
       name: flutter_downloader
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.8.3"
+    version: "1.8.3+2"
   flutter_easyloading:
     dependency: "direct main"
     description:
